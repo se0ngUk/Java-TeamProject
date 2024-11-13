@@ -3,7 +3,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;  // InetSocketAddress import 추가
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -13,9 +13,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class LoginServer {
-    private static final Map<String, String> userDatabase = new HashMap<>();
+    private static final UserManager userManager = new UserManager(); // UserManager 인스턴스 생성
 
-    // 서버 시작 메서드
     public static void startServer() throws IOException {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 5050), 0);
@@ -26,7 +25,6 @@ public class LoginServer {
             server.start();
             System.out.println("서버가 localhost에서 실행 중입니다.");
 
-            // 점(.) 출력 타이머 설정
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
                 @Override
@@ -42,65 +40,37 @@ public class LoginServer {
     }
 
     static class SignupHandler implements HttpHandler {
-    @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        if ("POST".equals(exchange.getRequestMethod())) {
-            String formData = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            Map<String, String> params = parseFormData(formData);
-
-            String username = params.get("username");
-            String password = params.get("password");
-
-            if (username == null || password == null) {
-                String response = "<html><body><h2>회원가입 실패: 모든 필드를 입력하세요.</h2></body></html>";
-                sendResponse(exchange, response);
-            } else if (userDatabase.containsKey(username)) {
-                String response = "<html><body><h2>회원가입 실패: 이미 존재하는 사용자입니다.</h2></body></html>";
-                sendResponse(exchange, response);
-            } else {
-                // 회원가입 성공 시 데이터베이스에 사용자 추가
-                userDatabase.put(username, password);
-
-                // 회원가입 성공 시 리디렉션 설정
-                exchange.getResponseHeaders().set("Location", "/login");  // 로그인 페이지 경로로 리디렉션
-                exchange.sendResponseHeaders(302, -1);  // 302 상태 코드로 리디렉션 응답 전송
-                exchange.close();
-            }
-        } else {
-            String form = loadHtml("signup.html");
-            sendResponse(exchange, form);
-        }
-    }
-}
-
-
-    // 로그인 핸들러
-    static class LoginHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             if ("POST".equals(exchange.getRequestMethod())) {
                 String formData = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
                 Map<String, String> params = parseFormData(formData);
-
-                String username = params.get("username");
+    
+                String id = params.get("username");
                 String password = params.get("password");
-
-                String response;
-                if (password != null && password.equals(userDatabase.get(username))) {
-                    response = "<html><body><h2>로그인 성공! 환영합니다, " + username + "님!</h2></body></html>";
+                String name = params.get("name");
+                String ssn = params.get("ssn");
+                String address = params.get("address"); // 주소 필드 추가
+    
+                if (id == null || password == null || name == null || ssn == null || address == null) {
+                    String response = "<html><body><h2>회원가입 실패: 모든 필드를 입력하세요.</h2></body></html>";
+                    sendResponse(exchange, response);
+                } else if (userManager.isUsernameTaken(id)) {
+                    String response = "<html><body><h2>회원가입 실패: 이미 존재하는 사용자입니다.</h2></body></html>";
+                    sendResponse(exchange, response);
                 } else {
-                    response = "<html><body><h2>로그인 실패: 잘못된 사용자명 또는 비밀번호입니다.</h2></body></html>";
+                    userManager.registerUser(id, password, name, ssn, address);
+                    exchange.getResponseHeaders().set("Location", "/login");
+                    exchange.sendResponseHeaders(302, -1);
+                    exchange.close();
                 }
-
-                sendResponse(exchange, response);
             } else {
-                String form = loadHtml("login.html");
+                String form = loadHtml("signup.html");
                 sendResponse(exchange, form);
             }
         }
     }
-
-    // StaticFileHandler 구현 - CSS 파일 서빙
+    
     static class StaticFileHandler implements HttpHandler {
         private final String filePath;
 
@@ -119,7 +89,6 @@ public class LoginServer {
         }
     }
 
-    // HTML 파일 로드 메서드
     private static String loadHtml(String fileName) throws IOException {
         String absolutePath = "C:/Users/dlcjs/Desktop/공학대 수업/code/Javateam/src/templates/" + fileName;
         try {
@@ -130,7 +99,6 @@ public class LoginServer {
         }
     }
 
-    // 폼 데이터 파싱 메서드
     private static Map<String, String> parseFormData(String formData) {
         Map<String, String> params = new HashMap<>();
         for (String pair : formData.split("&")) {
@@ -142,7 +110,6 @@ public class LoginServer {
         return params;
     }
 
-    // 응답 전송 메서드
     private static void sendResponse(HttpExchange exchange, String response) throws IOException {
         exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
         exchange.sendResponseHeaders(200, response.getBytes(StandardCharsets.UTF_8).length);
@@ -150,5 +117,5 @@ public class LoginServer {
         os.write(response.getBytes(StandardCharsets.UTF_8));
         os.close();
     }
-    
 }
+
