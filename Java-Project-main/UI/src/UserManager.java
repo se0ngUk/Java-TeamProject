@@ -14,7 +14,7 @@ public class UserManager {
             saveUserToDatabase(user);
             System.out.println("회원가입이 완료되었습니다.");
         } else {
-            System.out.println("잘못된 주민번호 형식입니다.");
+            System.out.println("<html><body><h2> 잘못된 주민번호 형식입니다.</h2></body></html");
         }
     }
 
@@ -39,7 +39,7 @@ public class UserManager {
         return retrieveUserFromDatabase(id) != null;
     }
 
-    // 사용자 클래스
+    // 사용자 정보 저장 클래스
     static class User {
         String id;
         String password;

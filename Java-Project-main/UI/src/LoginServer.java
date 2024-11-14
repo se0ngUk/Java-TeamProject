@@ -18,6 +18,8 @@ import java.util.Map;
 public class LoginServer {
     private static final UserManager userManager = new UserManager();
     private static final String BASE_PATH = "C:/Users/dlcjs/Desktop/공학대 수업/code/Javateam/src/templates/";
+    //html파일이 들어있는 폴더를 절대경로로 넣어주시면됩니다.
+
 
     // 서버 시작 메서드
     public static void startServer() throws IOException {
@@ -30,11 +32,11 @@ public class LoginServer {
         System.out.println("서버가 localhost에서 실행 중입니다.");
     }
 
-    // CSS 파일 핸들러
+    // CSS 파일 핸들러 html의 디자인을 받기위해 사용하는 클래스입니다.
     static class CssHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            byte[] css = Files.readAllBytes(Paths.get(BASE_PATH + "style.css"));
+            byte[] css = Files.readAllBytes(Paths.get(BASE_PATH + "style.css")); //BASE_PATH는 절대경로로 사용자마자 설정을 추가로 해야합니다.
             exchange.getResponseHeaders().set("Content-Type", "text/css; charset=UTF-8");
             exchange.sendResponseHeaders(200, css.length);
             try (OutputStream os = exchange.getResponseBody()) {
@@ -43,6 +45,7 @@ public class LoginServer {
         }
     }
 
+    //signup.html 파일 받아 처리하는 클래스입니다.
     // 회원가입 핸들러
     static class SignupHandler implements HttpHandler {
         @Override
@@ -50,19 +53,13 @@ public class LoginServer {
             if ("POST".equals(exchange.getRequestMethod())) {
                 String formData = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
                 Map<String, String> params = parseFormData(formData);
-
+                
+                //회원가입창에서 받은 데이터를 할당합니다.
                 String id = params.get("username");
                 String password = params.get("password");
                 String name = params.get("fullName");
                 String ssn = params.get("ssnpin");
-                String address = params.get("address");
-                
-                //비버깅 확인용
-                System.out.println("ID: " + id);
-                System.out.println("Password: " + password);
-                System.out.println("이름: " + name);
-                System.out.println("주민번호: " + ssn);
-                System.out.println("주소: " + address);
+                String address = params.get("adress");
 
                 // 필드 유효성 검사
                 String missingField = null;
@@ -87,14 +84,17 @@ public class LoginServer {
         }
     }
 
+
+    //Login.html 데이터 받는 클래스입니다.
     // 로그인 핸들러
     static class LoginHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            if ("POST".equals(exchange.getRequestMethod())) {
+            if ("POST".equals(exchange.getRequestMethod())) { //데이터전송 방식 post
                 String formData = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
                 Map<String, String> params = parseFormData(formData);
-
+                
+                //로그인 html에서 가져온 ID,비밀번호를 가져온뒤에 현재 저장된
                 String id = params.get("username");
                 String password = params.get("password");
 
@@ -110,11 +110,17 @@ public class LoginServer {
     }
 
     private static Map<String, String> parseFormData(String formData) {
+        System.out.println("Raw form data: " + formData); // 폼 데이터 확인용 출력
         Map<String, String> params = new HashMap<>();
+        //아래 for는 신경안쓰셔도됩니다. 디버깅하다 만들어진 똥입니다. 정상적으로 작동은 합니다.
         for (String pair : formData.split("&")) {
             String[] keyValue = pair.split("=");
             if (keyValue.length > 1) {
-                params.put(keyValue[0], java.net.URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8));
+                String key = keyValue[0];
+                String value = java.net.URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8);
+                params.put(key, value);
+            } else {
+                System.out.println("Warning: Missing value for key: " + keyValue[0]);
             }
         }
         return params;
