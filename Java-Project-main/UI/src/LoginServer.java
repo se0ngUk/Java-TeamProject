@@ -27,6 +27,7 @@ public class LoginServer {
         server.createContext("/signup", new SignupHandler());
         server.createContext("/login", new LoginHandler());
         server.createContext("/style.css", new CssHandler());
+        server.createContext("/dashboard", new Dashboard.DashboardHandler());
         server.setExecutor(null);
         server.start();
         System.out.println("서버가 localhost에서 실행 중입니다.");

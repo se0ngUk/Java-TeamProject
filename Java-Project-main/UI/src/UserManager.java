@@ -24,7 +24,7 @@ public class UserManager {
     }
 
     // 사용자 정보 데이터베이스에서 가져오기
-    private User retrieveUserFromDatabase(String id) {
+    public  User retrieveUserFromDatabase(String id) {
         return userDatabase.get(id);
     }
 
