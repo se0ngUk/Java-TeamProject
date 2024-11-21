@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="dashboardcss.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <img src="./path/logo.png" alt="이미지" class="logo-img">
+            <div class="user-info">
+                <p><strong>사용자 이름:</strong> {{username}}</p>
+                <p><strong>이름:</strong> {{name}}</p>
+                <p><strong>주소:</strong> {{address}}</p>
+            </div>
+        </div>
+    </header>
+    <main>
+        <section class="search-section">
+            <form method="GET" action="/dashboard" class="search-form">
+                <input type="text" name="keyword" class="search-input" placeholder="책 검색..." required>
+                <button type="submit" class="search-button">검색</button>
+            </form>
+        </section>
+
+        <section class="results-section">
+            <h2>검색 결과</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>제목</th>
+                        <th>저자</th>
+                        <th>장르</th>
+                        <th>출판연도</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{searchResults}}
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>
